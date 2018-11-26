@@ -1,0 +1,45 @@
+---
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+#***Crime in the City of Los Angeles***
+### *26th of November 2018*
+Map presents count to crimes commited on September 30, 2018 in Los Angeles areas and reported to LAPD.
+
+```{r}
+#Packeages
+library(dplyr)
+library(leaflet)
+
+#setwd
+setwd("C:/Users/kkosins/Desktop/Coursera Data Science/DDP/Assignment 1 Leaflet")
+
+#Data Preps - Crime in LA occured on 9/30/2018, Source: https://data.lacity.org/A-Safe-City/Crime-Data-from-2010-to-Present
+crime_data<-read.csv("Crime_Data_from_2010_to_Present.csv")
+options(pillar.sigfig = 7)
+crime_data_summary<-
+  crime_data %>% 
+  group_by(Area.Name) %>%
+  summarise(Crime.Count=length(Crime.Code.Description), lat=first(Lat), lng=first(Lng))
+
+
+#Palette for map
+pal <- colorBin("YlOrRd", domain=crime_data_summary$Crime.Count, bins = 5, pretty = TRUE)
+
+#Map LAPD crime data
+LA_crime_map <- crime_data_summary %>% 
+  leaflet() %>% 
+  addTiles() %>%
+  addCircles(weight=1, 
+             radius = sqrt(crime_data_summary$Crime.Count)*400, 
+             popup = paste("Number of crimes commited on 9/30/2018 in ", 
+                           crime_data_summary$Area.Name,": ", crime_data_summary$Crime.Count, sep = ""),
+             color = pal(crime_data_summary$Crime.Count),
+             fillOpacity=0.5)
+LA_crime_map
+```
+
+Source of data: [lacity.org](https://data.lacity.org/A-Safe-City/Crime-Data-from-2010-to-Present)
